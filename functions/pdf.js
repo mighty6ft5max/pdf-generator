@@ -1,7 +1,9 @@
+const serverless = require("serverless-http");
 const express = require("express");
 const bodyParser = require("body-parser");
 const puppeteer = require("puppeteer");
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const UUID = require("uuid")
+const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 
 const {
   AWS_BUCKET,
@@ -21,8 +23,8 @@ const app = express();
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get("/api/pdf", async (req, res) => {
-  const { html } = req.query;
+app.post("/api/pdf", async (req, res) => {
+  const { html } = req.body;
 
   try {
     const browser = await puppeteer.launch();
@@ -45,7 +47,7 @@ app.get("/api/pdf", async (req, res) => {
     });
     await browser.close();
 
-    let upload_name = "invoice_number";
+    let upload_name = UUID.v4() + ".pdf";
     /**
      * @type AWS.S3.PutObjectRequest
      */
@@ -55,11 +57,26 @@ app.get("/api/pdf", async (req, res) => {
       Key: upload_name,
     };
     const command = new PutObjectCommand(input);
-
-    const response = await client.sent(command);
-    res.send(response || "Generation Failed");
+    
+   client.send(command).then(response=>{
+    console.log("upload to s3 successful")
+   }).then();
+  
+   res.send(pdf)
+    
   } catch (error) {
     console.log("Error CreatPDF", error);
     return error;
   }
 });
+
+
+const handler = serverless(app,{
+  binary(headers) {
+    return ['application/pdf'];
+  }
+});
+
+exports.handler = async (event, context) => {
+return await handler(event, context);
+};
