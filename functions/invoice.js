@@ -5,12 +5,13 @@ const bodyParser = require("body-parser");
 const puppeteer = require("puppeteer");
 const UUID = require("uuid");
 const { SESClient, SendRawEmailCommand } = require("@aws-sdk/client-ses");
-
+const SESRawMessage = require("./helpers/SESRawMessage");
 const { REACT_APP_AWS_ACCESS_KEY_ID, REACT_APP_AWS_SECRET_ACCESS_KEY } =
   process.env;
 
 const client = new SESClient({
   region: "us-east-1",
+  apiVersion: "2010-12-01",
   credentials: {
     accessKeyId: REACT_APP_AWS_ACCESS_KEY_ID,
     secretAccessKey: REACT_APP_AWS_SECRET_ACCESS_KEY,
@@ -80,6 +81,14 @@ app.post("/api/invoice/raw_email", async (req, res) => {
       `creation-date="${date}"`,
       `Content-Transfer-Encoding: ${encoding}`,
       `\n`,
+      pdf.toString('base64'),
+      `--${boundary}`,
+      `Content-Type: application/pdf; name="${filename}"`,
+      `Content-Description: screenshot_${transaction}.jpg`,
+      `Content-Disposition: attachment;filename="screenshot_${transaction}.jpg";`,
+      `creation-date="${date}"`,
+      `Content-Transfer-Encoding: ${encoding}`,
+      `\n`,
       content,
       `\n`,
       `--${boundary}--`,
@@ -87,9 +96,47 @@ app.post("/api/invoice/raw_email", async (req, res) => {
 
     console.log("SENDING RAW EMAIL");
     const input = {
-      RawMessage: { Data: new Buffer(rawMessage.join("\n")) },
+      RawMessage: { Data: Buffer.from(rawMessage.join("\n")) },
       Source,
     };
+    // const command = new SendRawEmailCommand({
+    //   ...input, 
+    // });
+
+    // const rawMessage = new SESRawMessage({
+    //   from: Source,
+    //   to: [
+    //     // ToAddresses, 
+    //     "daponextraspp@gmail.com",
+    //   //   {
+    //   //   name: "Prosper Nweze",
+    //   //   address: "daponextraspp@gmail.com"
+    //   // }
+    // ],
+    //   subject,
+    //   html: body_html,
+    //   text: body_text,
+    //   files: [
+    //     {
+    //       content: pdf,
+    //       mimetype: "application/pdf",
+    //       name: filename,
+    //     },
+    //     {
+    //       content: pdfOutput,
+    //       mimetype: 'image/jpeg',
+    //       name: `screenshot_${transaction}.jpg`
+    //     }
+    // ]
+    // })
+    // const rawData = rawMessage.build();
+    // console.log(rawData.join('\n'));
+    // const input = {
+    //   RawMessage: { Data:  Buffer.from(rawData.join('\n')) },
+    //   Source,
+    // };
+  
+
     const command = new SendRawEmailCommand(input);
     const response = await client.send(command);
     console.log("EMAIL SENT", response);
