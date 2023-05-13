@@ -2,22 +2,6 @@ const serverless = require("serverless-http");
 const express = require("express");
 const bodyParser = require("body-parser");
 const puppeteer = require("puppeteer");
-const UUID = require("uuid")
-const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
-
-const {
-  AWS_BUCKET,
-  REACT_APP_AWS_ACCESS_KEY_ID,
-  REACT_APP_AWS_SECRET_ACCESS_KEY,
-} = process.env;
-
-const client = new S3Client({
-  region: "us-east-1",
-  credentials: {
-    accessKeyId: REACT_APP_AWS_ACCESS_KEY_ID,
-    secretAccessKey: REACT_APP_AWS_SECRET_ACCESS_KEY,
-  },
-});
 
 const app = express();
 app.use(bodyParser.json({ limit: "50mb" }));
@@ -47,36 +31,19 @@ app.post("/api/pdf", async (req, res) => {
     });
     await browser.close();
 
-    let upload_name = UUID.v4() + ".pdf";
-    /**
-     * @type AWS.S3.PutObjectRequest
-     */
-    const input = {
-      Body: Buffer.from(pdf, "binary"),
-      Bucket: AWS_BUCKET,
-      Key: upload_name,
-    };
-    const command = new PutObjectCommand(input);
-    
-   client.send(command).then(response=>{
-    console.log("upload to s3 successful")
-   }).then();
-  
-   res.send(pdf)
-    
+    res.send(pdf);
   } catch (error) {
     console.log("Error CreatPDF", error);
     return error;
   }
 });
 
-
-const handler = serverless(app,{
+const handler = serverless(app, {
   binary(headers) {
-    return ['application/pdf'];
-  }
+    return ["application/pdf"];
+  },
 });
 
 exports.handler = async (event, context) => {
-return await handler(event, context);
+  return await handler(event, context);
 };
