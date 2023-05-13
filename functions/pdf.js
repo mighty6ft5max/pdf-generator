@@ -22,12 +22,7 @@ app.post("/api/pdf", async (req, res) => {
 
     const pdf = await page.pdf({
       format: "Letter",
-      displayHeaderFooter: true,
       printBackground: true,
-      margin: {
-        top: "60px",
-        bottom: "75px",
-      },
     });
     await browser.close();
 
