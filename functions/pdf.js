@@ -32,7 +32,7 @@ app.post("/api/pdf", async (req, res) => {
     console.log("LAUNCHED");
     const page = await browser.newPage();
     await page.setContent(html, {
-      waitUntil: ["domcontentloaded", "networkidle0", "networkidle2"],
+      waitUntil: "domcontentloaded",
     });
     console.log("SET CONTENT WAITING");
     const pdf = await page.pdf({
