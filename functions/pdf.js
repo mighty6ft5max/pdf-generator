@@ -11,6 +11,7 @@ app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post("/api/pdf", async (req, res) => {
+  let browser;
   const { html } = req.body;
   console.log("ENVIRONMENT", is_local);
   try {
@@ -27,25 +28,24 @@ app.post("/api/pdf", async (req, res) => {
           ignoreHTTPSErrors: true,
         };
 
-    const browser = await puppeteer.launch(launch_configs);
+    browser = await puppeteer.launch(launch_configs);
     console.log("LAUNCHED");
     const page = await browser.newPage();
-    await page.setJavaScriptEnabled(false);
-    await page.emulateMediaType("screen");
     await page.setContent(html, {
       waitUntil: ["domcontentloaded", "networkidle0", "networkidle2"],
     });
-
+    console.log("SET CONTENT WAITING");
     const pdf = await page.pdf({
       format: "Letter",
       printBackground: true,
     });
-    await browser.close();
 
     res.send(pdf);
   } catch (error) {
     console.log("Error CreatPDF", error);
     return error;
+  } finally {
+    await browser.close();
   }
 });
 

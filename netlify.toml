@@ -4,7 +4,8 @@
 
 [functions]
   directory = "functions"
-
+  external_node_modules = ["@sparticuz/chromium"]
+  
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
