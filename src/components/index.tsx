@@ -3,29 +3,23 @@ import axios from "axios";
 import { useState } from "react";
 export default function ConfirmationPDF({ tx_data }: { tx_data?: any }) {
   const [loading, setLoading] = useState(false);
-  const genPdf = () => {
+  const genPdf = async () => {
+    setLoading(true);
     const html = document.getElementById("invoice-container")?.outerHTML;
     if (!html) return alert("invoice not found");
-    setLoading(true);
-    axios
-      .post(
+    try {
+      const { data } = await axios.post(
         "/api/pdf",
         { html, transaction: "r68ujkw9lz" },
         { responseType: "blob" }
-      )
-      .then(response => {
-        console.log("AXIOS RESPONSE", response);
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", "file.pdf"); //change "file.pdf" according to saved name you want, give extension according to filetype
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      );
+      const doc = new Blob([data], { type: "application/pdf;base64" });
+      const fileURL = URL.createObjectURL(doc);
+      window.open(fileURL);
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
