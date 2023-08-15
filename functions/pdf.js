@@ -3,20 +3,21 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
-const is_local = process.env.REACT_APP_ENVIRONMENT === "local";
+const { REACT_APP_ENVIRONMENT, REACT_APP_LOCAL_CHROME: executablePath } =
+  process.env;
+const is_local = REACT_APP_ENVIRONMENT === "local";
 const app = express();
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post("/api/pdf", async (req, res) => {
   const { html } = req.body;
-  console.log("IS DEVELOPMENT", is_local);
+  console.log("ENVIRONMENT", is_local);
   try {
     const launch_configs = is_local
       ? {
           args: [],
-          executablePath:
-            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          executablePath,
         }
       : {
           args: chromium.args,
@@ -27,8 +28,8 @@ app.post("/api/pdf", async (req, res) => {
         };
 
     const browser = await puppeteer.launch(launch_configs);
+    console.log("LAUNCHED");
     const page = await browser.newPage();
-
     await page.setJavaScriptEnabled(false);
     await page.emulateMediaType("screen");
     await page.setContent(html, {
