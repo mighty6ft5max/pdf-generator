@@ -1,35 +1,32 @@
 const serverless = require("serverless-http");
 const express = require("express");
 const bodyParser = require("body-parser");
-const chromium = require("chrome-aws-lambda");
+const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
-
+const is_local = process.env.REACT_APP_ENVIRONMENT === "local";
 const app = express();
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post("/api/pdf", async (req, res) => {
   const { html } = req.body;
-
+  console.log("IS DEVELOPMENT", is_local);
   try {
-    chromium.args.push("--disable-gpu");
-    chromium.args.push("--disable-software-rasterizer");
-    chromium.args.push("--disable-web-security");
-    chromium.args.push("--user-data-dir=/tmp/user-data");
-    chromium.args.push("--data-path=/tmp/data-path");
-    chromium.args.push("--homedir=/tmp");
-    chromium.args.push("--disk-cache-dir=/tmp/cache-dir");
-    chromium.args.push("--no-sandbox");
-    chromium.args.push("--disable-setuid-sandbox");
-    chromium.args.push("--single-process");
-    chromium.args.push("--disable-dev-shm-usage");
-    chromium.args.push("--disable-accelerated-2d-canvas");
+    const launch_configs = is_local
+      ? {
+          args: [],
+          executablePath:
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        }
+      : {
+          args: chromium.args,
+          defaultViewport: chromium.defaultViewport,
+          executablePath: await chromium.executablePath(),
+          headless: chromium.headless,
+          ignoreHTTPSErrors: true,
+        };
 
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless,
-    });
+    const browser = await puppeteer.launch(launch_configs);
     const page = await browser.newPage();
 
     await page.setJavaScriptEnabled(false);
