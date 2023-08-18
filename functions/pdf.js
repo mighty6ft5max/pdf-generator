@@ -27,7 +27,7 @@ app.post("/api/pdf", async (req, res) => {
           headless: chromium.headless,
           ignoreHTTPSErrors: true,
         };
-    console.log("LAUNCH CONFIGS", launch_configs);
+    console.log("LAUNCH CONFIGS", JSON.stringify(launch_configs));
     browser = await puppeteer.launch(launch_configs);
     console.log("LAUNCHED");
     const page = await browser.newPage();
@@ -42,7 +42,7 @@ app.post("/api/pdf", async (req, res) => {
     console.log("PDF CREATED", pdf.length);
     res.send(pdf);
   } catch (error) {
-    console.log("Error CreatPDF", error);
+    console.log("Error CreatPDF: ", error.message);
     return error;
   } finally {
     await browser.close();
