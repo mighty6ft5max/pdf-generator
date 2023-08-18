@@ -50,9 +50,9 @@ app.post("/api/pdf", async (req, res) => {
 });
 
 const handler = serverless(app, {
-  binary(headers) {
-    return ["application/pdf"];
-  },
+  // binary(headers) {
+  //   return ["application/pdf"];
+  // },
 });
 
 exports.handler = async (event, context) => {
