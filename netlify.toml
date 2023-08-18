@@ -4,7 +4,7 @@
 
 [functions]
   directory = "functions"
-  node_bundler = "esbuild" # use esbuild to bundle functions
+  # node_bundler = "esbuild" # use esbuild to bundle functions
   external_node_modules = ["@sparticuz/chromium"]
 
 [[redirects]]

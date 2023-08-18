@@ -1,6 +1,29 @@
 import PurchaseInvoice from "./Invoice/purchase";
 import axios from "axios";
 import { useState } from "react";
+
+
+function base64toBlob(base64Data: string, contentType:string) {
+  contentType = contentType || '';
+  var sliceSize = 1024;
+  var byteCharacters = atob(base64Data);
+  var bytesLength = byteCharacters.length;
+  var slicesCount = Math.ceil(bytesLength / sliceSize);
+  var byteArrays = new Array(slicesCount);
+
+  for (var sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
+      var begin = sliceIndex * sliceSize;
+      var end = Math.min(begin + sliceSize, bytesLength);
+
+      var bytes = new Array(end - begin);
+      for (var offset = begin, i = 0; offset < end; ++i, ++offset) {
+          bytes[i] = byteCharacters[offset].charCodeAt(0);
+      }
+      byteArrays[sliceIndex] = new Uint8Array(bytes);
+  }
+  return new Blob(byteArrays, { type: contentType });
+}
+
 export default function ConfirmationPDF({ tx_data }: { tx_data?: any }) {
   const [loading, setLoading] = useState(false);
   const genPdf = async () => {
@@ -11,9 +34,10 @@ export default function ConfirmationPDF({ tx_data }: { tx_data?: any }) {
       const { data } = await axios.post(
         "/api/pdf",
         { html, transaction: "r68ujkw9lz" },
-        { responseType: "blob" }
+        { responseType: "text" }
       );
-      const doc = new Blob([data], { type: "application/pdf;base64" });
+      const doc = base64toBlob(data, 'application/pdf')
+      // const doc = new Blob([data], { type: "application/pdf;base64" });
       const fileURL = URL.createObjectURL(doc);
       window.open(fileURL);
     } catch (error) {
