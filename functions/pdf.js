@@ -27,7 +27,7 @@ app.post("/api/pdf", async (req, res) => {
           headless: chromium.headless,
           ignoreHTTPSErrors: true,
         };
-
+    console.log("LAUNCH CONFIGS", launch_configs);
     browser = await puppeteer.launch(launch_configs);
     console.log("LAUNCHED");
     const page = await browser.newPage();
