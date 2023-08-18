@@ -39,7 +39,7 @@ app.post("/api/pdf", async (req, res) => {
       format: "Letter",
       printBackground: true,
     });
-
+    console.log("PDF CREATED", pdf);
     res.send(pdf);
   } catch (error) {
     console.log("Error CreatPDF", error);
