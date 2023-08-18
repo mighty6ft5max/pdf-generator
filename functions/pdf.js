@@ -40,7 +40,7 @@ app.post("/api/pdf", async (req, res) => {
       printBackground: true,
     });
     console.log("PDF CREATED", pdf.length);
-    res.send(pdf);
+    res.send(pdf.toString("base64"));
   } catch (error) {
     console.log("Error CreatPDF: ", error.message);
     return error;
